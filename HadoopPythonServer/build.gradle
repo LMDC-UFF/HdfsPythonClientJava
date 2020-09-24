@@ -1,0 +1,32 @@
+plugins {
+	id 'org.springframework.boot' version '2.3.4.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+	id 'java'
+}
+
+group = 'br.uff.lmdc'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	compile 'net.sf.py4j:py4j:0.10.9.1'
+	compile('org.apache.hadoop:hadoop-client:3.1.1')
+	compile('org.apache.hadoop:hadoop-hdfs:3.1.1')
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+	// https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-hdfs-client
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
