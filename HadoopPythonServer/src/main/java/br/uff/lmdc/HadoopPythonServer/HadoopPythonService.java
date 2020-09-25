@@ -1,12 +1,14 @@
 package br.uff.lmdc.HadoopPythonServer;
 
-import io.netty.handler.codec.http.multipart.FileUpload;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 @Log4j2
@@ -62,5 +64,28 @@ public class HadoopPythonService {
             log.error(e);
         }
         return false;
+    }
+
+    public boolean mkdir(String path) {
+        try {
+            return hadoopHDFSService.mkdir(Paths.get(path));
+        } catch (Exception | HadoopException e) {
+            log.error(e);
+        }
+        return false;
+    }
+
+    public String[] glob(String path) {
+        try {
+            val resultQuery = hadoopHDFSService.showDirectory(path);
+            val result = new String[resultQuery.length];
+            for (int i = 0; i < resultQuery.length; i++) {
+                result[i] = resultQuery[i].getPath().toString();
+            }
+            return result;
+        } catch (Exception e) {
+            log.error(e);
+        }
+        return null;
     }
 }
