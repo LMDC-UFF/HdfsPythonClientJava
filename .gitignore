@@ -33,3 +33,4 @@ out/
 ### VS Code ###
 .vscode/
 .directory
+__pycache__/
