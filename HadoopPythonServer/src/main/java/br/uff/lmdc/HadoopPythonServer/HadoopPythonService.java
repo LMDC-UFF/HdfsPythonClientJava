@@ -67,6 +67,7 @@ public class HadoopPythonService {
     }
 
     public boolean mkdir(String path) {
+        log.info("Mkdir: {}", path);
         try {
             return hadoopHDFSService.mkdir(Paths.get(path));
         } catch (Exception | HadoopException e) {
@@ -76,6 +77,7 @@ public class HadoopPythonService {
     }
 
     public String[] glob(String path) {
+        log.info("Glob: {}", path);
         try {
             val resultQuery = hadoopHDFSService.showDirectory(path);
             val result = new String[resultQuery.length];

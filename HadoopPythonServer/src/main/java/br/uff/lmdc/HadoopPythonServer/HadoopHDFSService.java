@@ -148,8 +148,6 @@ public class HadoopHDFSService {
     return makeDirectory(path.getFileName().toString(), path.getParent().toString());
   }
 
-  @Autowired
-  MessageSource messageSource;
 
   /**
    * Create a new directory in hdfs, if there isn't one of the same name yet.
@@ -161,16 +159,6 @@ public class HadoopHDFSService {
    */
   public boolean makeDirectory(String name, String path) throws IOException, HadoopException {
     log.debug("makeDirectory() called. Path='{}'; Name='{}'", path, name);
-    if (!path.equals("")) {
-      if (!existsPath(path)) {
-        String aux[] = new String[1];
-        aux[0] = path;
-        String msg = messageSource.getMessage("Hadoop.PathInv", aux, LocaleContextHolder.getLocale());
-        log.error("Não foi possível criar diretório. O caminho não existe: '" + path + "'");
-        throw new HadoopException(msg);
-//        throw new HadoopException("Não foi possível criar diretório. O caminho não existe: '" + path + "'");
-      }
-    }
     Path newDirectoryName = new Path(new Path(path), name);
     if (!fs.exists(newDirectoryName)) {
       fs.mkdirs(newDirectoryName);
@@ -258,9 +246,9 @@ public class HadoopHDFSService {
       log.debug("Não foi possível remover {}. O arquivo não existe.", filePath);
       String aux[] = new String[1];
       aux[0] = filePath;
-      String msg = messageSource.getMessage("FileNotEx", aux, LocaleContextHolder.getLocale());
-      throw new HadoopException(msg, new FileNotFoundException(msg));
-//      throw new HadoopException("O arquivo '" + filePath + "' não existe", new FileNotFoundException("O arquivo '" + filePath + "' não existe."));
+//      String msg = messageSource.getMessage("FileNotEx", aux, LocaleContextHolder.getLocale());
+//      throw new HadoopException(msg, new FileNotFoundException(msg));
+      throw new HadoopException("O arquivo '" + filePath + "' não existe", new FileNotFoundException("O arquivo '" + filePath + "' não existe."));
     }
   }
 
@@ -287,9 +275,10 @@ public class HadoopHDFSService {
     } else {
       log.debug("Não foi possível renomear {}. O arquivo/diretório não existe", src);
       String aux[] = new String[1];
-      aux[0] = src;
-      String msg = messageSource.getMessage("FileNotEx", aux, LocaleContextHolder.getLocale());
-      throw new HadoopException(msg, new FileNotFoundException(msg));
+        aux[0] = src;
+//      String msg = messageSource.getMessage("FileNotEx", aux, LocaleContextHolder.getLocale());
+        val msg = "Não foi possível renomear " + src + ". O arquivo/diretório não existe";
+        throw new HadoopException("Não foi possível renomear " + src + ". O arquivo/diretório não existe", new FileNotFoundException(msg));
     }
   }
 
