@@ -218,9 +218,22 @@ class HDFSWrapperNativeClient:
 
 from hdfs_lmdc.HDFSWrapperBase import HDFSWrapperBase
 from hdfs_lmdc.HDFSWrapperJava import HDFSWrapperJava
+import time
+from py4j.java_gateway import JavaGateway
 
 class HDFSWrapperClient():
 
     @staticmethod
     def load_from_envs() -> HDFSWrapperBase:
+        isReady = False
+        while isReady == False:
+            print("Testando conexão com a JVM")
+            try:
+                java_gateway = JavaGateway(eager_load=True)
+                isReady = True
+                print("Java pronto para atender novas requisições")
+                java_gateway.close()
+            except Exception as e:
+                print("Não foi possível conectar ao Java, tentando novamente em 2 segundos")
+                time.sleep(2)
         return HDFSWrapperJava()
