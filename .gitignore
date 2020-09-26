@@ -34,3 +34,6 @@ out/
 .vscode/
 .directory
 __pycache__/
+
+
+hdfs_lmdc.egg-info/

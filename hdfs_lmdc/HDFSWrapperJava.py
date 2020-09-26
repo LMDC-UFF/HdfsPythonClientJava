@@ -30,28 +30,44 @@ class HadoopPythonServiceDef:
     def glob(self, path) -> List[str]:
         pass
 
-
+import  time
 class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
 
     def getClient(self) -> T:
-        gateway: JavaGateway = globals()["gateway"]
-        if gateway is None:
-            print("Abrindo conexão com o hadoop no java")
-            gateway = JavaGateway()
-            print("Métodos disponívies")
-            print(gateway.help(gateway.entry_point))
-            globals()["gateway"] = gateway
-        return gateway
+        isReady = False
+        while isReady == False:
+            try:
+                gateway = JavaGateway()
+                print("Abrindo conexão com o hadoop no java")
+                isReady = True
+                # Debug
+                # print(gateway.help(gateway.entry_point))
+                return gateway
+            except Exception as e:
+                print(e)
+                time.sleep(1)
 
     def exist_path(self, path: str) -> bool:
-        return self.getClient().existsPath(path)
+        client = self.getClient()
+        try:
+            return client.existsPath(path)
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
 
     def upload(self, local_path: str, hdfs_path: str) -> RequestResult:
-        result = self.getClient().upload(local_path, hdfs_path)
-        if result:
-            return RequestResult.ofOk("File Uploaded")
-        else:
-            return RequestResult.ofError("Error upload file...! {}".format(local_path))
+        client = self.getClient()
+        try:
+            result = client.upload(local_path, hdfs_path)
+            if result:
+                return RequestResult.ofOk("File Uploaded")
+            else:
+                return RequestResult.ofError("Error upload file...! {}".format(local_path))
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
 
     def download(self, hdfs_file_path: str, local_save_path: str = None) -> Tuple[str, RequestResult]:
         try:
@@ -67,7 +83,13 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
 
             local_file_path = os.path.join(local_folder_path, local_file_name + ext)
             os.makedirs(local_folder_path, exist_ok=True)
-            self.getClient().download(hdfs_file_path, local_file_path)
+            client = self.getClient()
+            try:
+                client.download(hdfs_file_path, local_file_path)
+            except Exception as e:
+                print(e)
+            finally:
+                client.close()
 
             return local_file_path, RequestResult.ofOk("File downloaded")
         except:
@@ -75,20 +97,26 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
 
     def read_txt(self, hdfs_text_path: str) -> Tuple[str, RequestResult]:
         try:
-            if self.getClient().existsPath(hdfs_text_path) is False:
+            if self.exist_path(hdfs_text_path) is False:
                 return (
                     None,
                     RequestResult.ofError(
                         "File {} not exist.".format(hdfs_text_path)
                     ),
                 )
+            client = self.getClient()
+            try:
+                return (
+                    client.readAllBytes(hdfs_text_path).decode("utf-8"),
+                    RequestResult.ofOk(
+                        "File {} read successfully.".format(hdfs_text_path)
+                    ),
+                )
+            except Exception as e:
+                print(e)
+            finally:
+                client.close()
 
-            return (
-                self.getClient().readAllBytes(hdfs_text_path).decode("utf-8"),
-                RequestResult.ofOk(
-                    "File {} read successfully.".format(hdfs_text_path)
-                ),
-            )
         except:
             pass
 
@@ -101,7 +129,7 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
 
     def read_image(self, hdfs_image_path: str):
         try:
-            if self.getClient().existsPath(hdfs_image_path) is False:
+            if self.exist_path(hdfs_image_path) is False:
                 return (
                     None,
                     RequestResult.ofError(
@@ -110,7 +138,15 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
                 )
             import time
             start = time.time()
-            content = self.getClient().readAllBytes(hdfs_image_path)
+            client = self.getClient()
+            content = None
+            try:
+                content = client.readAllBytes(hdfs_image_path)
+            except Exception as e:
+                print(e)
+            finally:
+                client.close()
+
             end = time.time()
             print(end - start)
             img = Image.open(io.BytesIO(content))
@@ -132,9 +168,21 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
         )
 
     def mkdir(self, path: str) -> bool:
-        return self.getClient().mkdir(path)
+        client = self.getClient()
+        try:
+            return client.mkdir(path)
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
 
     def glob(self, path) -> List[str]:
-        resultQuery = self.getClient().glob(path)
-        result = [path for path in resultQuery]
-        return result
+        client = self.getClient()
+        try:
+            resultQuery = client.glob(path)
+            result = [path for path in resultQuery]
+            return result
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
