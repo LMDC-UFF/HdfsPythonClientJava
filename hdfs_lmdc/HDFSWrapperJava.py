@@ -27,10 +27,12 @@ class HadoopPythonServiceDef:
     def mkdir(self, path) -> bool:
         pass
 
-    def glob(self, path) -> List[str]:
+    def ls(self, path) -> List[str]:
         pass
 
-import  time
+import time
+
+
 class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
 
     def getClient(self) -> T:
@@ -176,12 +178,48 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
         finally:
             client.close()
 
-    def glob(self, path) -> List[str]:
+    def ls(self, path) -> List[str]:
         client = self.getClient()
         try:
-            resultQuery = client.glob(path)
+            resultQuery = client.ls(path)
             result = [path for path in resultQuery]
             return result
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
+
+    def is_file(self, path):
+        client = self.getClient()
+        try:
+            result = client.isFile(path)
+            return result
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
+        return None
+
+    def is_dir(self, path):
+        client = self.getClient()
+        try:
+            result = client.isDirectory(path)
+            return result
+        except Exception as e:
+            print(e)
+        finally:
+            client.close()
+        return None
+
+    def walk(self, path):
+        client = self.getClient()
+        try:
+            resultQuery = client.pathInfo(path)
+            files = [path for path in resultQuery.getFiles()]
+            dirs = [path for path in resultQuery.getFolders()]
+            yield path, dirs, files
+            for dir in dirs:
+                yield from self.walk(os.path.join(path, dir))
         except Exception as e:
             print(e)
         finally:

@@ -41,5 +41,15 @@ class HDFSWrapperBase(Generic[T]):
         pass
 
     @abc.abstractmethod
-    def glob(self, path) -> List[str]:
+    def ls(self, path) -> List[str]:
+        pass
+
+    @abc.abstractmethod
+    def walk(self, path):
+        pass
+
+    def is_file(self, path):
+        pass
+
+    def is_dir(self, path):
         pass

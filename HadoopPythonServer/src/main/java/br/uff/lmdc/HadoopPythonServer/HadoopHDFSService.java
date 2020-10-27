@@ -1,6 +1,7 @@
 package br.uff.lmdc.HadoopPythonServer;
 
 
+import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.apache.commons.io.IOUtils;
@@ -46,6 +47,7 @@ public class HadoopHDFSService {
   }
 
   private Configuration currentConfiguration;
+  @Getter
   private FileSystem fs;
 
   @PostConstruct
@@ -117,7 +119,15 @@ public class HadoopHDFSService {
     return conf;
   }
 
-  /**
+  public boolean isFile(String path) throws IOException {
+    return fs.getFileStatus(new Path(path)).isFile();
+  }
+
+    public boolean isDirectory(String path) throws IOException {
+        return fs.getFileStatus(new Path(path)).isDirectory();
+    }
+
+    /**
    * Return an array of FileStatus (hdfs files) by a given hdfs path.
    *
    * @param path the hdfs path.
