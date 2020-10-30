@@ -4,9 +4,11 @@ import lombok.extern.log4j.Log4j2;
 import lombok.val;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import py4j.GatewayServer;
 
 @Log4j2
+@EnableScheduling
 @SpringBootApplication
 public class HadoopPythonServerApplication {
 

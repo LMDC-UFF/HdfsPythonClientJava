@@ -11,9 +11,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.MessageSource;
-import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -40,6 +38,7 @@ import java.util.stream.IntStream;
 @Service
 public class HadoopHDFSService {
 
+  private UserGroupInformation ugi;
   private HadoopConfigurationProperties hadoopConfiguration;
 
   public HadoopHDFSService(HadoopConfigurationProperties hadoopConfiguration) {
@@ -66,6 +65,25 @@ public class HadoopHDFSService {
     }
   }
 
+  /**
+   * 10 Min
+   * Baseado em https://github.com/apache/nifi/blob/master/nifi-nar-bundles/nifi-extension-utils/nifi-hadoop-utils/src/main/java/org/apache/nifi/hadoop/KerberosTicketRenewer.java
+   */
+  @Scheduled(fixedDelay =  10 * 60 * 1000, initialDelay = 60  * 1000)
+  void renewKerberosTicket() {
+    if (this.hadoopConfiguration.getHdfs().isUseKerberos() && this.ugi != null) {
+      try {
+        log.info("Renovando hadoop ticket");
+        ugi.doAs((PrivilegedExceptionAction<Void>) () -> {
+          this.ugi.checkTGTAndReloginFromKeytab();
+          return null;
+        });
+      } catch (Exception e) {
+        log.error("Não foi possível renovar o kicket do kerberos: ", e);
+      }
+    }
+  }
+
   private Configuration buildHDFSConfiguration() throws IOException {
     if (hadoopConfiguration.getHdfs().isUseXmlResources()) {
       return buildXmlResourcesHDFSConfiguration();
@@ -82,6 +100,7 @@ public class HadoopHDFSService {
     } else {
       ugi = UserGroupInformation.createRemoteUser(this.hadoopConfiguration.getHdfs().getUsername());
     }
+    this.ugi = ugi;
     return ugi.doAs((PrivilegedExceptionAction<FileSystem>) () -> FileSystem.get(configuration));
   }
 
