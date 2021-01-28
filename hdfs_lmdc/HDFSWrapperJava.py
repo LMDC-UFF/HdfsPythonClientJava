@@ -40,7 +40,7 @@ class HDFSWrapperJava(HDFSWrapperBase[HadoopPythonServiceDef]):
         while isReady == False:
             try:
                 gateway = JavaGateway()
-                print("Abrindo conexão com o hadoop no java")
+
                 isReady = True
                 # Debug
                 # print(gateway.help(gateway.entry_point))
